@@ -1,0 +1,12 @@
+{% extends 'app/base.html' %}
+
+{% block content %}
+<h2>Selecciona un usuario para chatear</h2>
+<ul>
+    {% for usuario in usuarios %}
+    <li>
+        <a href="{% url 'chat' usuario_id=usuario.id %}">{{ usuario.username }}</a>
+    </li>
+    {% endfor %}
+</ul>
+{% endblock %}

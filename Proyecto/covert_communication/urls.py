@@ -5,6 +5,10 @@ from app import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-	path("", views.index, name="index"),
-	path('chat/<int:usuario_id>/', views.chat, name='chat'),
+	path("", views.home, name='home'),
+	path('register/', views.register, name='register'),
+    path('login/', views.login2, name='login2'),
+    path('logout/', views.logout2, name='logout2'),
+    path('chat/<int:usuario_id>/', views.chat, name='chat'),
+	path('home/', views.home, name='home'),
 ]

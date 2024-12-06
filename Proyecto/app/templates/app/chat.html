@@ -1,36 +1,21 @@
-<!DOCTYPE html>
-<html lang="en">
-	<head>
-		<meta charset="UTF-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<title>Chat Interface</title>
-	</head>
-	<body>
-		<div class="chat-container">
-			<!-- Chat Header -->
-			<div class="chat-header">
-				<h2>Chat with John Doe</h2>
-			</div>
+{% extends 'app/base.html' %}
 
-			<!-- Chat Body -->
-			<div class="chat-body">
-				<div class="chat-message">
-					<span class="user">John Doe:</span>
-					<span class="text">Hello, how are you?</span>
-				</div>
-				<div class="chat-message">
-					<span class="user">You:</span>
-					<span class="text">I'm doing great, thanks!</span>
-				</div>
-			</div>
+{% block content %}
+<h2>Chat con {{ receptor.username }}</h2>
 
-			<!-- Chat Footer -->
-			<div class="chat-footer">
-				<input type="text" placeholder="Type your message...">
-				<label for="photo-upload">📷</label>
-				<input type="file" id="photo-upload" accept="image/*">
-				<button>Send</button>
-			</div>
-		</div>
-	</body>
-</html>
+<div>
+    {% for mensaje in mensajes_descifrados %}
+        <div>
+            <p>{{ mensaje }}</p>
+        </div>
+    {% empty %}
+        <p>No hay mensajes aún.</p>
+    {% endfor %}
+</div>
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Enviar mensaje</button>
+</form>
+{% endblock %}
