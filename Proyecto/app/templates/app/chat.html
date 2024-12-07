@@ -2,14 +2,19 @@
 
 {% block content %}
 <h2>Chat con {{ receptor.username }}</h2>
-
-<div>
+<div style="width: 40%; border: 1px solid black; padding: 6px;">
     {% for mensaje in mensajes_descifrados %}
-        <div>
-            <p>{{ mensaje }}</p>
-        </div>
+		{% if mensaje.sender == user.id %}
+			<div class="chat sender">
+				<span class="chat">{{ mensaje.content }}</span>
+			</div>
+		{% else %}
+			<div class="chat">
+				<span class="chat">{{ mensaje.content }}</span>
+			</div>
+		{% endif %}
     {% empty %}
-        <p>No hay mensajes aún.</p>
+        <span class="chat">No hay mensajes aún.</span>
     {% endfor %}
 </div>
 

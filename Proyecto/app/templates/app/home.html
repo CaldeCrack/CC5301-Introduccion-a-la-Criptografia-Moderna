@@ -1,7 +1,7 @@
 {% extends 'app/base.html' %}
 
 {% block content %}
-<h2>Selecciona un usuario para chatear</h2>
+<h2>Bienvenido <u>{{ user.get_username }}</u>, selecciona un usuario para chatear</h2>
 <ul>
     {% for usuario in usuarios %}
     <li>

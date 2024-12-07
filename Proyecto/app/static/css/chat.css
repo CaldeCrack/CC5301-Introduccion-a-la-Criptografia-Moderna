@@ -1,0 +1,20 @@
+span.chat {
+	max-width: 98%;
+	margin: 2px;
+}
+
+div.chat {
+	max-width: 70%;
+	display: flex;
+	justify-content: flex-start;
+	border: 1px solid black;
+	border-radius: 4px;
+	margin-top: 4px;
+	margin-bottom: 4px;
+	word-wrap: break-word;
+}
+
+div.sender {
+	margin-left: auto;
+	justify-content: flex-end !important;
+}
