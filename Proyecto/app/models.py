@@ -9,3 +9,14 @@ class Mensaje(models.Model):
 
     def __str__(self):
         return f"Mensaje de {self.remitente} a {self.receptor} en {self.timestamp}"
+
+class ChatKey(models.Model):
+    usuario1 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='chatkeys_usuario1')
+    usuario2 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='chatkeys_usuario2')
+    clave = models.BinaryField()
+
+    class Meta:
+        unique_together = ('usuario1', 'usuario2')
+
+    def __str__(self):
+        return f"ChatKey entre {self.usuario1.username} y {self.usuario2.username}"

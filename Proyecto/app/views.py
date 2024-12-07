@@ -4,10 +4,13 @@ from django.contrib.auth.models import User
 from django.contrib.auth import logout, authenticate, login
 from django.contrib import messages
 from django.db import models
-from .models import Mensaje
+from .models import *
+#from .models import ChatKey
 from .forms import MensajeForm, RegistroForm
 from .covert import cifrar_mensaje, descifrar_mensaje, ocultar_mensaje_imagen, extraer_mensaje_imagen, generar_clave, generar_hmac, verificar_hmac
 import base64
+
+SECRET_KEY_CIFRADO = b'\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f'
 
 @login_required(login_url='/login/')
 def index(request):
@@ -57,54 +60,59 @@ def home(request):
 	usuarios = User.objects.exclude(id=request.user.id)
 	return render(request, 'app/home.html', {'usuarios': usuarios})
 
+
 @login_required(login_url='/login/')
 def chat(request, usuario_id):
-	clave_secreta = generar_clave()
-	receptor = User.objects.get(id=usuario_id)
-	if request.method == 'POST':
-		form = MensajeForm(request.POST)
-		if form.is_valid():
-			# Encriptamos el mensaje
-			mensaje_original = form.cleaned_data['mensaje']
-			mensaje_cifrado = cifrar_mensaje(mensaje_original, clave_secreta)
-			mensaje_base64 = base64.b64encode(mensaje_cifrado).decode()
+    receptor = User.objects.get(id=usuario_id)
 
-			# Generamos el HMAC
-			hmac_secreto = generar_hmac(mensaje_base64, clave_secreta)
-			mensaje_completo = mensaje_base64 + hmac_secreto
-			
-			# Ocultamos el mensaje en la imagen
-			imagen_path = "imagen_original.png"
-			ocultar_mensaje_imagen(imagen_path, mensaje_completo)
-			
-			# Guardamos en la base de datos (se guarda la imagen, pero solo el ID de la imagen o path)
-			mensaje = Mensaje(remitente=request.user, receptor=receptor, mensaje=mensaje_completo)
-			mensaje.save()
-			return redirect('chat', usuario_id=usuario_id)
-	else:
-		form = MensajeForm()
+    # Asegurar un orden consistente, por ejemplo, siempre ordenamos por id:
+    user1, user2 = sorted([request.user, receptor], key=lambda u: u.id)
 
-	# Mostramos los mensajes enviados y recibidos
-	mensajes = Mensaje.objects.filter(
-		(models.Q(remitente=request.user) & models.Q(receptor=receptor)) | 
-		(models.Q(remitente=receptor) & models.Q(receptor=request.user))
-	).order_by('timestamp')
+    # Intentar obtener la clave
+    chat_key, created = ChatKey.objects.get_or_create(
+        usuario1=user1,
+        usuario2=user2,
+        defaults={'clave': generar_clave()}
+    )
 
-	mensajes_descifrados = []
-	for mensaje in mensajes:
-		# Extraemos el mensaje y lo verificamos
-		longitud_bits = len(mensaje.mensaje) * 8
-		imagen_path = "imagen_oculta.png"
-		mensaje_extraido = extraer_mensaje_imagen(imagen_path, longitud_bits)
+    clave_secreta = chat_key.clave  # Esto es la clave compartida para este par
 
-		# Extraemos el mensaje cifrado y el HMAC
-		mensaje_cifrado_extraido = mensaje_extraido[:-64]
-		hmac_extraido = mensaje_extraido[-64:]
+    if request.method == 'POST':
+        form = MensajeForm(request.POST)
+        if form.is_valid():
+            mensaje_original = form.cleaned_data['mensaje']
+            mensaje_cifrado = cifrar_mensaje(mensaje_original, clave_secreta)
+            mensaje_base64 = base64.b64encode(mensaje_cifrado).decode()
+            hmac_secreto = generar_hmac(mensaje_base64, clave_secreta)
+            mensaje_completo = mensaje_base64 + hmac_secreto
 
-		if verificar_hmac(mensaje_cifrado_extraido, hmac_extraido, clave_secreta):
-			mensaje_descifrado = descifrar_mensaje(base64.b64decode(mensaje_cifrado_extraido), clave_secreta)
-			mensajes_descifrados.append(mensaje_descifrado)
-		else:
-			mensajes_descifrados.append("Error: El HMAC no coincide. El mensaje ha sido alterado.")
+            # Ocultamos el mensaje en la imagen
+            imagen_path = "imagen_original.png"
+            ocultar_mensaje_imagen(imagen_path, mensaje_completo)
 
-	return render(request, 'app/chat.html', {'form': form, 'mensajes_descifrados': mensajes_descifrados, 'receptor': receptor})
+            # Guardar en la base de datos
+            mensaje = Mensaje(remitente=request.user, receptor=receptor, mensaje=mensaje_completo)
+            mensaje.save()
+            return redirect('chat', usuario_id=usuario_id)
+    else:
+        form = MensajeForm()
+
+    mensajes = Mensaje.objects.filter(
+        (models.Q(remitente=request.user) & models.Q(receptor=receptor)) |
+        (models.Q(remitente=receptor) & models.Q(receptor=request.user))
+    ).order_by('timestamp')
+
+    mensajes_descifrados = []
+    for mensaje in mensajes:
+        # Evitamos volver a extraer de la imagen en cada mensaje, ya que tenemos mensaje_completo en la BD
+        mensaje_completo = mensaje.mensaje
+        mensaje_cifrado_extraido = mensaje_completo[:-64]
+        hmac_extraido = mensaje_completo[-64:]
+
+        if verificar_hmac(mensaje_cifrado_extraido, hmac_extraido, clave_secreta):
+            mensaje_descifrado = descifrar_mensaje(base64.b64decode(mensaje_cifrado_extraido), clave_secreta)
+            mensajes_descifrados.append(mensaje_descifrado)
+        else:
+            mensajes_descifrados.append("Error: El HMAC no coincide. El mensaje ha sido alterado.")
+
+    return render(request, 'app/chat.html', {'form': form, 'mensajes_descifrados': mensajes_descifrados, 'receptor': receptor})
