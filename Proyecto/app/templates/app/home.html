@@ -1,12 +1,57 @@
 {% extends 'app/base.html' %}
 
 {% block content %}
-<h2>Bienvenido <u>{{ user.get_username }}</u>, selecciona un usuario para chatear</h2>
-<ul>
-    {% for usuario in usuarios %}
-    <li>
-        <a href="{% url 'chat' usuario_id=usuario.id %}">{{ usuario.username }}</a>
-    </li>
-    {% endfor %}
-</ul>
+	<h1>Bienvenido <u>{{ request.user.username }}</u> al Chat Global</h1>
+	{% if private_key %}
+		<details style="background: #f4f4f4; padding: 10px; border: 1px solid #ddd;">
+			<summary>Registro exitoso. Esta es tu clave privada (no se la entregues a nadie)</summary>
+			{{ private_key }}
+		</details>
+		<p>Guarda esta clave con cuidado, no se mostrará de nuevo.</p>
+	{% endif %}
+
+	<!-- Images -->
+	<div>
+		{% for image in images %}
+			<div>
+				{% if image.decoded_message %}
+					<p>{{ image.decoded_message }}</p>
+				{% else %}
+					<img src="{{ image.image.url }}" alt="Uploaded image" style="max-width: 300px; max-height: 300px;">
+					<p style="margin-top: 2px; font-size: 0.8em;">Uploaded at: {{ image.timestamp }}</p>
+				{% endif %}
+			</div>
+		{% empty %}
+			<p>No hay imagenes subidas todavía.</p>
+		{% endfor %}
+	</div>
+
+	<form action="" method="POST" enctype="multipart/form-data" style="display: flex; align-items: center; gap: 15px; margin-top: 20px;">
+		{% csrf_token %}
+		<div>
+			<label for="username">Nombre de usuario del receptor:</label><br>
+			<input type="text" id="username" name="username" required><br><br>
+		</div>
+
+		<div>
+			<label for="message">Mensaje:</label><br>
+			<textarea id="message" name="message" rows="4"></textarea><br><br>
+		</div>
+
+		<div>
+			<label for="image">Sube una imagen:</label><br>
+			<input type="file" id="image" name="image" accept="image/*" required><br><br>
+		</div>
+
+		<button type="submit">Enviar</button>
+	</form>
+
+	<form action="" method="GET" style="margin-top: 30px; display: flex; align-items: center; gap: 15px;">
+        {% csrf_token %}
+        <div>
+            <label for="private_key">Ingresa tu clave privada (no se almacenará):</label><br>
+            <textarea id="private_key" name="private_key" rows="4" required></textarea>
+			<button type="submit">Decodificar</button>
+        </div>
+    </form>
 {% endblock %}

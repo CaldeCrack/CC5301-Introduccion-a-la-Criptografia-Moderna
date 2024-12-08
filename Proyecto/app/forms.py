@@ -1,9 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth.models import User
-
-class MensajeForm(forms.Form):
-    mensaje = forms.CharField(widget=forms.Textarea(attrs={'rows': 4, 'cols': 50}))
+from django.contrib.auth import get_user_model
+User = get_user_model()
 
 class RegistroForm(UserCreationForm):
     email = forms.EmailField(required=True)
