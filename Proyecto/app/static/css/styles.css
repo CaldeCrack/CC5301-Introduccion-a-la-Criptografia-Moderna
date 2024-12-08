@@ -1,0 +1,60 @@
+.w-full {
+	width: 100%;
+}
+
+img {
+	max-width: 30%;
+}
+
+div.images {
+	display: flex;
+	align-items: center;
+	flex-direction: column;
+}
+
+p.timestamp {
+	margin-top: 2px;
+	font-size: 0.8em;
+}
+
+.m-v-0 {
+	margin-top: 0;
+	margin-bottom: 0;
+}
+
+hr {
+	margin-top: 20px;
+	margin-bottom: 20px;
+}
+
+form.home {
+	display: flex;
+	flex-direction: column;
+}
+
+div.home {
+	position: fixed;
+	bottom: 10px;
+	right: 10px;
+	width: 20%;
+}
+
+.navbar {
+	position: fixed;
+	top: 10px;
+	right: 10px;
+}
+
+div.fixed {
+	display: flex;
+	flex-direction: column;
+	max-width: 30%;
+	height: 100%;
+	position: fixed;
+	top: 10px;
+	left: 10px;
+}
+
+details {
+	overflow: scroll;
+}

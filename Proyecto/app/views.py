@@ -2,7 +2,6 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout, authenticate, login, get_user_model
 from django.contrib import messages
-from django.db import models
 from .models import Image
 from .forms import RegistroForm
 from .covert import generar_claves, encriptar_mensaje, desencriptar_mensaje, ocultar_mensaje_imagen, extraer_mensaje_imagen
@@ -26,6 +25,8 @@ def register(request):
 			clave_privada, clave_publica = generar_claves()
 			user.public_key = clave_publica
 			user.save()
+			clave_privada = clave_privada.replace('N RSA PRIVATE KEY-----', 'N RSA PRIVATE KEY-----<br>')
+			clave_privada = clave_privada.replace('-----E', '<br>-----E')
 
 			login(request, user)
 			messages.success(request, "¡Registro exitoso! Has iniciado sesión.")
@@ -36,6 +37,8 @@ def register(request):
 
 def login2(request):
 	if request.method == 'GET':
+		if request.user.is_authenticated:
+			return redirect('home')
 		return render(request, 'app/login.html')
 
 	if request.method == 'POST':
@@ -60,7 +63,6 @@ def logout2(request):
 def home(request):
 	if request.method == 'GET':
 		private_key = request.GET.get("private_key")
-		print(private_key)
 		images = Image.objects.all().order_by("-timestamp")
 		decoded_images = []
 
@@ -71,7 +73,6 @@ def home(request):
 					image.decoded_message = decoded_message
 			decoded_images.append(image)
 
-		# images = Image.objects.all().order_by("-timestamp")
 		return render(request, "app/home.html", {"images": decoded_images})
 
 	if request.method == "POST":

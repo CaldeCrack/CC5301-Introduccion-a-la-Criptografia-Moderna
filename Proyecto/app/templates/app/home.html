@@ -1,57 +1,61 @@
 {% extends 'app/base.html' %}
 
 {% block content %}
-	<h1>Bienvenido <u>{{ request.user.username }}</u> al Chat Global</h1>
-	{% if private_key %}
+	<div class="fixed">
+		<h1 class="m-v-0">Bienvenido <u>{{ request.user.username }}</u><br>al chat global</h1>
+		{% if private_key %}
 		<details style="background: #f4f4f4; padding: 10px; border: 1px solid #ddd;">
 			<summary>Registro exitoso. Esta es tu clave privada (no se la entregues a nadie)</summary>
-			{{ private_key }}
+			{{ private_key|safe }}
 		</details>
 		<p>Guarda esta clave con cuidado, no se mostrará de nuevo.</p>
-	{% endif %}
-
-	<!-- Images -->
-	<div>
-		{% for image in images %}
-			<div>
-				{% if image.decoded_message %}
-					<p>{{ image.decoded_message }}</p>
-				{% else %}
-					<img src="{{ image.image.url }}" alt="Uploaded image" style="max-width: 300px; max-height: 300px;">
-					<p style="margin-top: 2px; font-size: 0.8em;">Uploaded at: {{ image.timestamp }}</p>
-				{% endif %}
-			</div>
-		{% empty %}
-			<p>No hay imagenes subidas todavía.</p>
-		{% endfor %}
+		{% endif %}
 	</div>
 
-	<form action="" method="POST" enctype="multipart/form-data" style="display: flex; align-items: center; gap: 15px; margin-top: 20px;">
-		{% csrf_token %}
-		<div>
-			<label for="username">Nombre de usuario del receptor:</label><br>
-			<input type="text" id="username" name="username" required><br><br>
+	<!-- Images -->
+	{% for image in images %}
+		<div class="images">
+			{% if image.decoded_message %}
+				<p>{{ image.decoded_message }}</p>
+			{% else %}
+				<img src="{{ image.image.url }}" alt="Uploaded image">
+				<p class="timestamp">Uploaded at: {{ image.timestamp }}</p>
+			{% endif %}
 		</div>
+	{% empty %}
+		<div class="images"><p>No hay imagenes subidas todavía.</p></div>
+	{% endfor %}
 
-		<div>
-			<label for="message">Mensaje:</label><br>
-			<textarea id="message" name="message" rows="4"></textarea><br><br>
-		</div>
+	<div class="home">
+		<form action="" method="POST" enctype="multipart/form-data" class="home">
+			{% csrf_token %}
+			<div>
+				<label for="username">Nombre de usuario del receptor:</label><br>
+				<input class="w-full" type="text" id="username" name="username" required><br><br>
+			</div>
 
-		<div>
-			<label for="image">Sube una imagen:</label><br>
-			<input type="file" id="image" name="image" accept="image/*" required><br><br>
-		</div>
+			<div>
+				<label for="message">Mensaje:</label><br>
+				<textarea class="w-full" id="message" name="message" rows="4"></textarea><br><br>
+			</div>
 
-		<button type="submit">Enviar</button>
-	</form>
+			<div>
+				<label for="image">Sube una imagen:</label><br>
+				<input type="file" id="image" name="image" accept="image/*" required><br><br>
+			</div>
+			<button type="submit">Enviar</button>
+		</form>
 
-	<form action="" method="GET" style="margin-top: 30px; display: flex; align-items: center; gap: 15px;">
-        {% csrf_token %}
-        <div>
-            <label for="private_key">Ingresa tu clave privada (no se almacenará):</label><br>
-            <textarea id="private_key" name="private_key" rows="4" required></textarea>
+		<hr>
+
+		<form action="" method="GET" class="home">
+			{% csrf_token %}
+			<div>
+				<label for="private_key">Ingresa tu clave privada (info):</label>
+				<textarea class="w-full" id="private_key" name="private_key" rows="4" required></textarea>
+				<br><br>
+			</div>
 			<button type="submit">Decodificar</button>
-        </div>
-    </form>
+		</form>
+	</div>
 {% endblock %}
