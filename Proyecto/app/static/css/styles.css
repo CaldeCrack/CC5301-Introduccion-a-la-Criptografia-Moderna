@@ -2,8 +2,8 @@
 	width: 100%;
 }
 
-img {
-	max-width: 30%;
+img, p.decrypted {
+	max-width: 25%;
 }
 
 div.images {
@@ -48,13 +48,30 @@ div.home {
 div.fixed {
 	display: flex;
 	flex-direction: column;
-	max-width: 30%;
-	height: 100%;
+	width: 32%;
+	height: 97%;
 	position: fixed;
 	top: 10px;
 	left: 10px;
 }
 
 details {
+	background: #f4f4f4;
+	padding: 10px;
+	border: 1px solid #ddd;
 	overflow: scroll;
+}
+
+div.info {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+}
+
+button.refresh {
+	background: none;
+	border: none;
+	cursor: pointer;
+	padding: 0;
 }

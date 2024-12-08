@@ -2,13 +2,48 @@
 
 {% block content %}
 	<div class="fixed">
-		<h1 class="m-v-0">Bienvenido <u>{{ request.user.username }}</u><br>al chat global</h1>
+		<div class="info">
+			<h1 class="m-v-0">Bienvenido <u>{{ request.user.username }}</u><br>al chat global</h1>
+			<form action="" method="POST">
+				{% csrf_token %}
+				<input type="hidden" name="action" value="clear_private_key">
+				<button type="submit" class="refresh">
+					<span style="font-size: 4em;" title="Refrescar">🔄</span>
+				</button>
+			</form>
+		</div>
 		{% if private_key %}
-		<details style="background: #f4f4f4; padding: 10px; border: 1px solid #ddd;">
+		<details>
 			<summary>Registro exitoso. Esta es tu clave privada (no se la entregues a nadie)</summary>
 			{{ private_key|safe }}
 		</details>
 		<p>Guarda esta clave con cuidado, no se mostrará de nuevo.</p>
+		{% else %}
+			<p>
+				<strong>¿Qué es esta página?</strong><br>
+				Es una plataforma para publicar imágenes disponibles de forma global.
+				Ofrece la funcionalidad de adjuntar un mensaje opcional
+				hacia un destinatario dentro de la imagen.<br><br>
+
+				<strong>¿Es esto privado?</strong><br>
+				Por como suena pareciera que cualquier persona sería capaz de espiar conversaciones ajenas
+				descargando las imágenes, pero te aseguro que esto no es posible, a menos que compartas
+				tu clave privada (<u>NO LO HAGAS</u>).<br><br>
+
+				<strong>¿Cómo funciona?</strong><br>
+				Aunque cualquier usuario puede visualizar las imágenes publicadas,
+				solo el destinatario podrá leer el mensaje asociado.<br>
+				Esto es posible gracias a la <i>criptografía</i>:<br>
+				- El mensaje se encripta utilizando la clave pública del destinatario.<br>
+				- Este puede ser descifrado únicamente con la clave privada del destinatario.<br><br>
+
+				<strong>¿Qué ventajas posee esto?</strong><br>
+				La principal ventaja es que ningún atacante será capaz de siquiera averiguar quien
+				está hablando con quien, efectivamente <i>encubriendo</i> la comunicación.<br>
+				Y aún si es que pudiese determinar dada una foto que par de personas están hablando
+				no sería capaz de obtener el mensaje, ya que necesitaría la clave privada del
+				destinatario para poder desencriptar el contenido.<br>
+			</p>
 		{% endif %}
 	</div>
 
@@ -16,11 +51,11 @@
 	{% for image in images %}
 		<div class="images">
 			{% if image.decoded_message %}
-				<p>{{ image.decoded_message }}</p>
+				<p class="decrypted">{{ image.decoded_message|safe }}</p>
 			{% else %}
 				<img src="{{ image.image.url }}" alt="Uploaded image">
-				<p class="timestamp">Uploaded at: {{ image.timestamp }}</p>
 			{% endif %}
+			<p class="timestamp">Publicado el: {{ image.timestamp }}</p>
 		</div>
 	{% empty %}
 		<div class="images"><p>No hay imagenes subidas todavía.</p></div>
@@ -31,7 +66,7 @@
 			{% csrf_token %}
 			<div>
 				<label for="username">Nombre de usuario del receptor:</label><br>
-				<input class="w-full" type="text" id="username" name="username" required><br><br>
+				<input class="w-full" type="text" id="username" name="username"><br><br>
 			</div>
 
 			<div>
@@ -51,8 +86,8 @@
 		<form action="" method="GET" class="home">
 			{% csrf_token %}
 			<div>
-				<label for="private_key">Ingresa tu clave privada (info):</label>
-				<textarea class="w-full" id="private_key" name="private_key" rows="4" required></textarea>
+				<label for="private_key_decode">Ingresa tu clave privada (info):</label>
+				<textarea class="w-full" id="private_key_decode" name="private_key_decode" rows="4" required></textarea>
 				<br><br>
 			</div>
 			<button type="submit">Decodificar</button>
