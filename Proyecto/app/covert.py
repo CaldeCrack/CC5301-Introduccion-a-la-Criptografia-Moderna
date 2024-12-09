@@ -6,9 +6,13 @@ from io import BytesIO
 from PIL import Image
 import hashlib, hmac, base64, uuid
 
+# Genera un MAC en base al mensaje cifrado y la clave pública del emisor, de
+# modo que se utiliza el esquema Encrypt-then-Mac
 def generar_hmac(mensaje, clave_secreta):
     return hmac.new(clave_secreta.encode('utf-8'), mensaje.encode(), hashlib.sha256).hexdigest()
 
+# Se verifica comprobando que el MAC del mensaje recibido sea igual al que
+# resulta de crear un MAC usando el mensaje y la clave pública del supuesto emisor
 def verificar_hmac(mensaje, hmac, clave_secreta):
     return generar_hmac(mensaje, clave_secreta) == hmac
 
@@ -20,7 +24,7 @@ def generar_claves():
 	clave_publica = clave.publickey().export_key().decode('utf-8')
 	return clave_privada, clave_publica
 
-# cifra un mensaje utilizando la clave pública RSA proporcionada, de tal forma
+# Cifra un mensaje utilizando la clave pública RSA proporcionada, de tal forma
 # que solo el poseedor de la clave privada correspondiente pueda descifrarlo
 def encriptar_mensaje(clave_publica_pem, mensaje):
 	clave_publica = RSA.import_key(clave_publica_pem)
@@ -28,7 +32,7 @@ def encriptar_mensaje(clave_publica_pem, mensaje):
 	encrypted_message = cipher.encrypt(mensaje.encode('utf-8'))
 	return base64.b64encode(encrypted_message).decode('utf-8')
 
-# descifra un mensaje cifrado utilizando la clave privada RSA, asegurando que 
+# Descifra un mensaje cifrado utilizando la clave privada RSA, asegurando que 
 # solo el destinatario objetivo pueda acceder al contenido del mensaje
 def desencriptar_mensaje(clave_privada_str, mensaje):
 	try:
@@ -40,9 +44,9 @@ def desencriptar_mensaje(clave_privada_str, mensaje):
 	except (ValueError, TypeError) as e:
 		return None
 
-# inserta un mensaje cifrado dentro de una imagen usando técnicas de esteganografía
+# Inserta un mensaje cifrado dentro de una imagen usando técnicas de esteganografía
 # (ocultación de información dentro de un objeto), alterando los bits menos significativos
-# de los píxeles de dicha imagen
+# de los píxeles de dicha imagen (LSB)
 def ocultar_mensaje_imagen(imagen, mensaje, clave):
 	hmac_mensaje = mensaje + generar_hmac(mensaje, clave)
 	mensaje_bin = ''.join(format(ord(i), '08b') for i in hmac_mensaje)
@@ -77,8 +81,8 @@ def ocultar_mensaje_imagen(imagen, mensaje, clave):
 	imagen_oculta.image.save(f'{uuid.uuid4().hex.upper()}.png', ContentFile(salida.read()), save=True)
 	salida.close()
 
-# recupera un mensaje oculto de una imagen procesada previamente, leyendo los bits menos 
-# significativos según la longitud especificada
+# Recupera un mensaje oculto de una imagen procesada previamente,
+# leyendo los bits menos significativos según la longitud especificada
 def extraer_mensaje_imagen(ruta_imagen, longitud_bits):
 	img = Image.open(ruta_imagen)
 	pixeles = img.load()

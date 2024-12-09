@@ -11,8 +11,8 @@ from random import randint
 from io import BytesIO
 User = get_user_model()
 
-# convierte una imagen cargada por el usuario a formato PNG, haciendo uso de
-# la librería PIL para convertir la imagen a formato RGBA para luego guardarla en el formato deseado
+# Convierte una imagen cargada por el usuario a formato PNG, haciendo uso de la librería
+# PIL para convertir la imagen a formato RGBA y luego guardarla en dicho formato
 def convert_to_png(image_file):
 	with PilImage.open(image_file) as img:
 		img = img.convert("RGBA")
@@ -24,20 +24,21 @@ def convert_to_png(image_file):
 		new_file.name = f"{image_file.name.split('.')[0]}.png"
 		return new_file
 
-# muestra la página principal de la aplicación web
+# Página por defecto de la aplicación, siendo esta el chat global,
+# se necesita haber iniciado sesión
 @login_required(login_url='/login/')
 def index(request):
 	if request.method == 'GET':
 		return render(request, 'app/home.html')
 
-# permite a un nuevo usuario registrarse en la aplicación
+# Permite a un nuevo usuario registrarse en la aplicación
 def register(request):
-	#  si el usuario hace una solicitud (GET), se muestra el formulario de registro
+	# Se muestra el formulario de registro
 	if request.method == 'GET':
 		form = RegistroForm()
 		return render(request, 'app/register.html', {'form': form})
 
-	# una vez envía este formulario (POST), se genera su par de claves públicas y privadas RSA,
+	# Una vez envía este formulario (POST), se genera su par de claves públicas y privadas RSA,
 	# guardándose la clave pública automáticamente y redirigiendo al usuario a la página principal
 	if request.method == 'POST':
 		form = RegistroForm(request.POST)
@@ -57,7 +58,7 @@ def register(request):
 			messages.error(request, "Hubo un error en el formulario.")
 			return render(request, 'app/register.html', {'form': form})
 
-# permite a los usuarios iniciar sesión. Si el usuario proporciona credenciales
+# Permite a los usuarios iniciar sesión. Si el usuario proporciona credenciales
 # válidas, se autentica y redirige a la página principal
 def login2(request):
 	if request.method == 'GET':
@@ -79,13 +80,13 @@ def login2(request):
 			messages.error(request, "Nombre de usuario o contraseña incorrectos.")
 			return render(request, 'app/login.html', {'form': form})
 
-# permite a los usuarios cerrar sesión. Al ser llamada, el usuario es 
+# Permite a los usuarios cerrar sesión. Al ser llamada, el usuario es 
 # desconectado y se redirige a la página de inicio de sesión
 def logout2(request):
 	logout(request)
 	return redirect('login2')
 
-# muestra la página principal, donde los usuarios pueden ver las imágenes
+# Muestra la página principal, donde los usuarios pueden ver las imágenes
 # con mensajes ocultos y subir nuevas imágenes, siguiendo la lógica de
 # "tablero de imágenes global" descrita anteriormente
 @login_required(login_url='/login/')
@@ -118,9 +119,11 @@ def home(request):
 		}
 		return render(request, "app/home.html", context)
 
-	# si el usuario realiza una solicitud POST, puede subir una imagen con un mensaje cifrado oculto en
+	# Si el usuario realiza una solicitud POST, puede subir una imagen con un mensaje cifrado oculto en
 	# ella, el mensaje entonces se cifra con la clave pública del destinatario
 	if request.method == "POST":
+		# Si se presiona el botón 'refrescar' se recarga la página eliminando los mensajes
+		# desencriptados o la clave privada que se muestra al registrarse
 		if request.POST.get('action') == 'clear_private_key':
 			request.session.pop('private_key', None)
 			return redirect('home')
@@ -134,7 +137,7 @@ def home(request):
 			encrypted_message = encriptar_mensaje(recipient.public_key, message)
 			if image_file:
 				ocultar_mensaje_imagen(image_file, encrypted_message, request.user.public_key)
-		# en caso de no especificarse un destinatario ni mensaje oculto, simplemente se sube la imagen
+		# En caso de no especificarse un destinatario, simplemente se sube la imagen
 		# al tablero sin mensaje oculto alguno
 		else:
 			if image_file:
