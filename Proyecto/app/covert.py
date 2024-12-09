@@ -4,7 +4,13 @@ from Crypto.Cipher import PKCS1_OAEP
 from Crypto.PublicKey import RSA
 from io import BytesIO
 from PIL import Image
-import base64, uuid
+import hashlib, hmac, base64, uuid
+
+def generar_hmac(mensaje, clave_secreta):
+    return hmac.new(clave_secreta.encode('utf-8'), mensaje.encode(), hashlib.sha256).hexdigest()
+
+def verificar_hmac(mensaje, hmac, clave_secreta):
+    return generar_hmac(mensaje, clave_secreta) == hmac
 
 def generar_claves():
 	clave = RSA.generate(2048)
@@ -28,8 +34,9 @@ def desencriptar_mensaje(clave_privada_str, mensaje):
 	except (ValueError, TypeError) as e:
 		return None
 
-def ocultar_mensaje_imagen(imagen, mensaje):
-	mensaje_bin = ''.join(format(ord(i), '08b') for i in mensaje)
+def ocultar_mensaje_imagen(imagen, mensaje, clave):
+	hmac_mensaje = mensaje + generar_hmac(mensaje, clave)
+	mensaje_bin = ''.join(format(ord(i), '08b') for i in hmac_mensaje)
 	img = Image.open(imagen)
 	pixeles = img.load()
 

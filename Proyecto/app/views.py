@@ -86,8 +86,14 @@ def home(request):
 		for image in images:
 			if private_key_decode:
 				image_message = extraer_mensaje_imagen(image.image.path, image.length)
-				if decoded_message := desencriptar_mensaje(private_key_decode, image_message):
-					image.decoded_message = decoded_message.replace('\n', '<br>')
+				hmac = image_message[-64:]
+				message = image_message[:-64]
+				if decoded_message := desencriptar_mensaje(private_key_decode, message):
+					decoded_message = decoded_message.replace('\n', '<br>')
+					sender_name = decoded_message[3:decoded_message.find(':')]
+					sender = get_object_or_404(User, username=sender_name)
+					if verificar_hmac(message, hmac, sender.public_key):
+						image.decoded_message = decoded_message
 			decoded_images.append(image)
 
 		context = {
@@ -110,7 +116,7 @@ def home(request):
 			recipient = get_object_or_404(User, username=receiver_name)
 			encrypted_message = encriptar_mensaje(recipient.public_key, message)
 			if image_file:
-				ocultar_mensaje_imagen(image_file, encrypted_message)
+				ocultar_mensaje_imagen(image_file, encrypted_message, request.user.public_key)
 		else:
 			if image_file:
 				image_file = convert_to_png(image_file)
