@@ -142,7 +142,7 @@ def home(request):
 		else:
 			if image_file:
 				image_file = convert_to_png(image_file)
-				image = ImageModel.objects.create(image=image_file, length=randint(0, 1024) * 8)
+				image = ImageModel.objects.create(image=image_file, length=randint(70, 1024) * 8)
 				image.save()
 
 		return redirect("home")
