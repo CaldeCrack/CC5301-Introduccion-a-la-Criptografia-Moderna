@@ -3,7 +3,7 @@
 {% block content %}
 	<div class="fixed">
 		<div class="info">
-			<h1 class="m-v-0">Bienvenido <u>{{ request.user.username }}</u><br>al chat global</h1>
+			<h1 class="m-v-0">Bienvenido/a <u>{{ request.user.username }}</u><br>al chat global</h1>
 			<form action="" method="POST">
 				{% csrf_token %}
 				<input type="hidden" name="action" value="clear_private_key">
