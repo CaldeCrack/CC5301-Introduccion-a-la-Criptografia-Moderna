@@ -25,7 +25,7 @@ def convert_to_png(image_file):
 		return new_file
 
 # Página por defecto de la aplicación, siendo esta el chat global,
-# se necesita haber iniciado sesión
+# se necesita haber iniciado sesión para poder ingresar
 @login_required(login_url='/login/')
 def index(request):
 	if request.method == 'GET':
@@ -119,7 +119,7 @@ def home(request):
 		}
 		return render(request, "app/home.html", context)
 
-	# Si el usuario realiza una solicitud POST, puede subir una imagen con un mensaje cifrado oculto en
+	# Si el usuario realiza una solicitud POST, puede subir una imagen con un mensaje oculto en
 	# ella, el mensaje entonces se cifra con la clave pública del destinatario
 	if request.method == "POST":
 		# Si se presiona el botón 'refrescar' se recarga la página eliminando los mensajes
